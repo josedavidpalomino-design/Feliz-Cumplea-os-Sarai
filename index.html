@@ -11,20 +11,30 @@
 
         /* Capas de Fondo */
         #stars-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0; transition: opacity 2s; }
-        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 2s; }
+        #matrixCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 1.5s; }
         .star { position: absolute; background: white; border-radius: 50%; animation: twinkle var(--duration) infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
 
-        /* Textos y Cuenta Regresiva */
-        #textContainer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; color: #ff69b4; font-size: 80px; text-align: center; text-shadow: 0 0 30px #ff1493; opacity: 0; transition: opacity 0.5s; pointer-events: none; width: 100%; }
+        /* Textos y Animación de Explosión */
+        #textContainer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; color: #ff69b4; font-size: 80px; text-align: center; text-shadow: 0 0 30px #ff1493; opacity: 0; pointer-events: none; width: 100%; }
+        .explode { animation: explodeAnim 0.8s forwards; }
+        @keyframes explodeAnim {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translate(-50%, -50%) scale(4); opacity: 0; filter: blur(10px); }
+        }
+
         #bookCaption { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); z-index: 50; color: white; font-size: 28px; text-align: center; text-shadow: 2px 2px 10px #ff1493; opacity: 0; transition: opacity 0.5s; width: 90%; display: none; font-family: 'Dancing Script', cursive; }
 
-        /* Libro 3D */
+        /* Libro 3D con Portada Bonita */
         #bookContainer { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); z-index: 20; width: 300px; height: 400px; perspective: 2000px; display: none; opacity: 0; transition: opacity 1.5s; }
         .page { width: 100%; height: 100%; position: absolute; transform-origin: left center; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1); cursor: pointer; }
         .page.flipped { transform: rotateY(-180deg); }
-        .front, .back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: white; border: 4px solid #fff; border-radius: 5px 15px 15px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .front, .back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border: 4px solid #fff; border-radius: 5px 15px 15px 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .back { transform: rotateY(180deg); border-radius: 15px 5px 5px 15px; }
+        
+        /* Estilo Portada */
+        .cover-front { background: linear-gradient(135deg, #ff1493, #ff69b4); color: gold; flex-direction: column; border: 5px solid #ffd700; }
+        .cover-front h2 { font-size: 40px; text-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
         .page img { width: 100%; height: 100%; object-fit: cover; }
 
         /* Corazón Final */
@@ -41,17 +51,24 @@
     <div id="stars-container"></div>
     <canvas id="matrixCanvas"></canvas>
     <div id="textContainer"></div>
-    <div id="clickHint">¿Lista para tu sorpresa? Toca aquí 💖</div>
+    <div id="clickHint">Un regalo para ti... Toca aquí 💖</div>
     <div id="bookCaption">Tengo algo para decirte...</div>
 
     <div id="bookContainer">
-        <div class="page" id="p3" style="z-index: 1;"><div class="front"><img src="foto5.jpg"></div><div class="back"><img src="foto6.jpg"></div></div>
-        <div class="page" id="p2" style="z-index: 2;"><div class="front"><img src="foto3.jpg"></div><div class="back"><img src="foto4.jpg"></div></div>
-        <div class="page" id="p1" style="z-index: 3;"><div class="front"><img src="foto1.jpg"></div><div class="back"><img src="foto2.jpg"></div></div>
+        <div class="page" id="p4" style="z-index: 1;"><div class="front"><img src="foto5.jpg"></div><div class="back"><img src="foto6.jpg"></div></div>
+        <div class="page" id="p3" style="z-index: 2;"><div class="front"><img src="foto3.jpg"></div><div class="back"><img src="foto4.jpg"></div></div>
+        <div class="page" id="p2" style="z-index: 3;"><div class="front"><img src="foto1.jpg"></div><div class="back"><img src="foto2.jpg"></div></div>
+        <div class="page" id="p1" style="z-index: 4;">
+            <div class="front cover-front">
+                <p style="font-size: 20px; color: white;">Para:</p>
+                <h2>Sarai</h2>
+                <p style="font-size: 50px;">🎁</p>
+            </div>
+            <div class="back" style="background: #fff;"><img src="foto1.jpg"></div>
+        </div>
     </div>
 
     <div id="heartGallery"></div>
-
     <audio id="birthdayAudio" src="Happybirthday.mp3" loop></audio>
 
     <script>
@@ -92,71 +109,72 @@
         }
         let matrixInterval = setInterval(drawMatrix, 50);
 
-        // 3. SECUENCIA (Cuenta regresiva + Música + Transición)
+        // 3. SECUENCIA PALABRA POR PALABRA + EXPLOSIÓN
         let isStarted = false;
         document.addEventListener('click', function() {
             if (isStarted) return;
             isStarted = true;
             document.getElementById('clickHint').style.display = 'none';
-            
-            // LA MÚSICA EMPIEZA AQUÍ
             document.getElementById('birthdayAudio').play();
             
-            let count = 3;
             let container = document.getElementById('textContainer');
+            let sequence = ["¡FELIZ", "CUMPLEAÑOS", "SARAI ❤️!"];
+            let idx = 0;
 
-            function countdown() {
-                if (count > 0) {
-                    container.innerText = count;
+            function showNextWord() {
+                if (idx < sequence.length) {
+                    container.innerText = sequence[idx];
                     container.style.opacity = 1;
-                    setTimeout(() => { container.style.opacity = 0; count--; setTimeout(countdown, 400); }, 800);
-                } else {
-                    showGreeting();
+                    container.style.transition = "opacity 0.5s";
+                    
+                    setTimeout(() => {
+                        if (idx === sequence.length - 1) {
+                            // EFECTO EXPLOSIÓN en la última palabra
+                            container.classList.add('explode');
+                            setTimeout(() => {
+                                document.getElementById('matrixCanvas').style.opacity = 0;
+                                document.getElementById('stars-container').style.opacity = 1;
+                                setTimeout(() => {
+                                    clearInterval(matrixInterval);
+                                    showBook();
+                                }, 1000);
+                            }, 800);
+                        } else {
+                            container.style.opacity = 0;
+                            idx++;
+                            setTimeout(showNextWord, 400);
+                        }
+                    }, 1200);
                 }
             }
-
-            function showGreeting() {
-                container.innerText = "¡FELIZ CUMPLEAÑOS SARAI ❤️!";
-                container.style.fontSize = "45px";
-                container.style.opacity = 1;
-                
-                setTimeout(() => {
-                    container.style.opacity = 0;
-                    document.getElementById('matrixCanvas').style.opacity = 0;
-                    document.getElementById('stars-container').style.opacity = 1;
-                    setTimeout(() => {
-                        clearInterval(matrixInterval);
-                        showBook();
-                    }, 2000);
-                }, 4000);
-            }
-
-            function showBook() {
-                const book = document.getElementById('bookContainer');
-                const caption = document.getElementById('bookCaption');
-                book.style.display = 'block';
-                caption.style.display = 'block';
-                setTimeout(() => { book.style.opacity = 1; caption.style.opacity = 1; }, 100);
-            }
-
-            countdown();
+            showNextWord();
         });
 
-        // 4. LIBRO
-        const frases = ["Algo para ti...", "Gracias por ser así...", "Eres maravillosa...", "¡Feliz Cumpleaños! ❤️"];
-        const pages = [document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p3')];
+        function showBook() {
+            const book = document.getElementById('bookContainer');
+            const caption = document.getElementById('bookCaption');
+            book.style.display = 'block';
+            caption.style.display = 'block';
+            setTimeout(() => { book.style.opacity = 1; caption.style.opacity = 1; }, 100);
+        }
+
+        // 4. LÓGICA DEL LIBRO
+        const frases = ["Algo para ti...", "Nuestros momentos...", "Gracias por estar...", "Eres increíble...", "¡Feliz Cumpleaños! ❤️"];
+        const pages = [document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p3'), document.getElementById('p4')];
+        
         pages.forEach((page, index) => {
             page.onclick = (e) => {
                 e.stopPropagation();
                 if (page.classList.contains('flipped')) return;
                 page.classList.add('flipped');
                 setTimeout(() => { page.style.zIndex = index; }, 600);
+
                 let cap = document.getElementById('bookCaption');
                 cap.style.opacity = 0;
                 setTimeout(() => {
                     cap.innerText = frases[index + 1];
                     cap.style.opacity = 1;
-                    if(index === 2) setTimeout(createFinalHeart, 2500);
+                    if(index === 3) setTimeout(createFinalHeart, 2500);
                 }, 500);
             };
         });
